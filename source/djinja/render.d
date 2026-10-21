@@ -101,7 +101,7 @@ class Context
             return false;
         return prev.has(name);
     }
-    
+
     UniNode get(string name)
     {
         if (name in data)
@@ -119,12 +119,12 @@ class Context
             assertJinja(0, "Non declared var `%s`".fmt(name));
         return prev.getPtr(name);
     }
-    
+
     T get(T)(string name)
     {
         return this.get(name).get!T;
     }
-    
+
 
     bool hasFunc(string name)
     {
@@ -135,7 +135,7 @@ class Context
         return prev.hasFunc(name);
     }
 
-    
+
     Function getFunc(string name)
     {
         if (name in functions)
@@ -155,7 +155,7 @@ class Context
         return prev.hasMacro(name);
     }
 
-    
+
     Macro getMacro(string name)
     {
         if (name in macros)
@@ -329,7 +329,7 @@ class Render : IVisitor
             auto args = pop();
             auto name = args["name"].get!string;
             args["varargs"] = UniNode([lhs] ~ args["varargs"].getSequence);
-            
+
             if (_context.hasFunc(name))
                 return visitFunc(name, args);
             else if (_context.hasMacro(name))
@@ -338,7 +338,7 @@ class Render : IVisitor
                 assertJinja(0, "Undefined " ~ type ~ " %s".fmt(name), node.pos);
             assert(0);
         }
-        
+
         UniNode calcFilter()
         {
             return calcCall!"filter";
@@ -500,7 +500,7 @@ class Render : IVisitor
                 default:
                     assertJinja(0, "Unknown attribute %s for %s".fmt(key.toString, node.name), sub.pos);
             }
-            
+
             lastPos = sub.pos;
         }
 
@@ -637,7 +637,7 @@ class Render : IVisitor
     override void visit(ForNode node)
     {
         bool iterated = false;
-        int depth = 0; 
+        int depth = 0;
 
         bool calcCondition()
         {
@@ -698,22 +698,23 @@ class Render : IVisitor
             }
 
             _context.data["loop"] = UniNode.emptyMapping;
-            _context.data.getMapping["loop"]["length"] = UniNode(iterable.length);
-            _context.data.getMapping["loop"]["depth"] = UniNode(depth);
-            _context.data.getMapping["loop"]["depth0"] = UniNode(depth - 1);
+            auto ref loopNode = _context.data.getMapping["loop"];
+            loopNode["length"] = UniNode(iterable.length);
+            loopNode["depth"] = UniNode(depth);
+            loopNode["depth0"] = UniNode(depth - 1);
             _context.functions["cycle"] = wrapper!cycle;
             _context.functions["changed"] = wrapper!changed;
 
             for (int i = 0; i < iterable.length; i++)
             {
-                _context.data.getMapping["loop"]["index"] = UniNode(i + 1);
-                _context.data.getMapping["loop"]["index0"] = UniNode(i);
-                _context.data.getMapping["loop"]["revindex"] = UniNode(iterable.length - i);
-                _context.data.getMapping["loop"]["revindex0"] = UniNode(iterable.length - i - 1);
-                _context.data.getMapping["loop"]["first"] = UniNode(i == 0);
-                _context.data.getMapping["loop"]["last"] = UniNode(i == iterable.length - 1);
-                _context.data.getMapping["loop"]["previtem"] = i > 0 ? iterable[i - 1] : UniNode(null);
-                _context.data.getMapping["loop"]["nextitem"] = i < iterable.length - 1 ? iterable[i + 1] : UniNode(null);
+                loopNode["index"] = UniNode(i + 1);
+                loopNode["index0"] = UniNode(i);
+                loopNode["revindex"] = UniNode(iterable.length - i);
+                loopNode["revindex0"] = UniNode(iterable.length - i - 1);
+                loopNode["first"] = UniNode(i == 0);
+                loopNode["last"] = UniNode(i == iterable.length - 1);
+                loopNode["previtem"] = i > 0 ? iterable[i - 1] : UniNode(null);
+                loopNode["nextitem"] = i < iterable.length - 1 ? iterable[i + 1] : UniNode(null);
 
                 if (node.isRecursive)
                     _context.functions["loop"] = wrapper!loop;
@@ -751,12 +752,12 @@ class Render : IVisitor
         tryAccept(node.expr);
 
         if (node.assigns.length == 1)
-            tryAccept(node.assigns[0]);            
+            tryAccept(node.assigns[0]);
         else
         {
             auto expr = pop();
             expr.checkNodeType(UniNode.Tag.sequence, node.expr.pos);
-            
+
             if (expr.length < node.assigns.length)
                 assertJinja(0, "Iterable length less then number of assigns", node.expr.pos);
 
@@ -962,7 +963,7 @@ private:
         }
         else
         {
-            UniNode curr = UniNode(str); 
+            UniNode curr = UniNode(str);
 
 
             foreach_reverse (filter; _appliedFilters)
@@ -999,7 +1000,7 @@ private:
         _context = _context.previos;
     }
 
-    
+
     void push(UniNode un)
     {
         _dataStack ~= un;
